@@ -1,0 +1,81 @@
+# What tools/preview.py shows (docs/PREVIEW.md of the plugins repository): the sensor of tonight's films, as Home
+# Assistant has it, with a film that has started and the ones after it; a guide that is old; no film left; and the
+# tile before a sensor is chosen. Moments are made from the time of the render ("{epoch+25m}" is in 25 minutes).
+time_zone: Europe/Rome
+
+tiles:
+  - tile: films
+    name: Film stasera
+    entity: sensor.film_stasera
+  - tile: films
+    name: Guida vecchia
+    entity: sensor.film_vecchia
+    sizes: [2x2, 4x4]
+  - tile: films
+    name: Nessun film
+    entity: sensor.film_vuoto
+    sizes: [2x2, 4x4]
+  - tile: films
+    name: Senza sensore
+    sizes: [4x4]
+
+states:
+  sensor.film_stasera:
+    state: "16"
+    attributes:
+      friendly_name: Film stasera
+      stale: false
+      titles:
+        - Point Break - Punto di rottura
+        - La giuria
+        - The Italian Job
+        - Il club delle prime mogli
+        - Maigret e le lettere anonime
+        - The Gentleman
+        - Fuochi d'artificio
+        - I laureati
+        - Non siamo soli (2022)
+        - Poirot: La parola alla difesa
+        - Giustizia a tutti i costi
+        - Nightmare - Dal Profondo della notte
+        - Palermo Milano - Solo andata
+        - No Sudden Move
+        - Io prima di te
+        - Stag. 2026 - Sul cammino di Francesco - La vita di Biagio Conte
+      channels: [Iris, Rai Movie, "20", La7, Top Crime, Rai 4, Cine34, Cine34, Rai 4, Top Crime, "20", Italia 2, Rai Movie, Iris, TV8, Rai 1]
+      starts:
+        - "{epoch-40m}"
+        - "{epoch+10m}"
+        - "{epoch+25m}"
+        - "{epoch+1h}"
+        - "{epoch+75m}"
+        - "{epoch+90m}"
+        - "{epoch+105m}"
+        - "{epoch+2h}"
+        - "{epoch+135m}"
+        - "{epoch+150m}"
+        - "{epoch+165m}"
+        - "{epoch+3h}"
+        - "{epoch+195m}"
+        - "{epoch+210m}"
+        - "{epoch+4h}"
+        - "{epoch+270m}"
+      genres: [Poliziesco, Thriller, Azione, Commedia, Poliziesco, "", Commedia, Commedia, "", Thriller, Drammatico, Horror, "", Poliziesco, Drammatico, Biografico]
+  sensor.film_vecchia:
+    state: "2"
+    attributes:
+      friendly_name: Film stasera
+      stale: true
+      titles: [La giuria, The Gentleman]
+      channels: [Rai Movie, Rai 4]
+      starts: ["{epoch+30m}", "{epoch+80m}"]
+      genres: [Thriller, ""]
+  sensor.film_vuoto:
+    state: "0"
+    attributes:
+      friendly_name: Film stasera
+      stale: false
+      titles: []
+      channels: []
+      starts: []
+      genres: []
