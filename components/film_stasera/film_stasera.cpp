@@ -12,6 +12,7 @@ namespace ui = tessera::ui;
 struct Film {
   std::string title, channel, genre;
   uint32_t at = 0;   // when it starts, seconds since 1970
+  int group = 0;     // the channel's group (1 to 4, 0 for none): the colour of the dot before its name
 };
 
 // A film that started less than this long ago is still on, so it stays on the tile. The guide has no end times.
@@ -20,8 +21,8 @@ static constexpr int MAX_PER_COLUMN = 8;
 static constexpr size_t MAX_FILMS = 20;
 
 // The tile: a header (its name and the date), then one row per film as many as fit. A row has the start time on the left;
-// beside it the title, and under the title the channel and the genre. A film that has already started shows its time in
-// the accent. A tile at least WIDE_MM wide is split into two columns that fill one after the other, so a whole evening
+// beside it the title, and under the title the channel's name with a dot in the colour of its group (Rai, Mediaset...)
+// and the genre. A film that has already started shows its time in the accent. A tile at least WIDE_MM wide is split into two columns that fill one after the other, so a whole evening
 // fits on a page. The sensor changes twice a day, the clock every second: only a text that changes is set again.
 class FilmsTile : public tessera::Tile {
  public:
@@ -63,12 +64,14 @@ class FilmsTile : public tessera::Tile {
     JsonArrayConst channels = a["channels"].as<JsonArrayConst>();
     JsonArrayConst starts = a["starts"].as<JsonArrayConst>();
     JsonArrayConst genres = a["genres"].as<JsonArrayConst>();
+    JsonArrayConst groups = a["groups"].as<JsonArrayConst>();
     for (size_t i = 0; i < titles.size() && films_.size() < MAX_FILMS; ++i) {
       Film f;
       f.title = std::string(titles[i] | "");
       f.channel = std::string(channels[i] | "");
       f.genre = std::string(genres[i] | "");
       f.at = starts[i] | 0u;
+      f.group = groups[i] | 0;
       if (f.at && !f.title.empty()) films_.push_back(std::move(f));
     }
     std::sort(films_.begin(), films_.end(), [](const Film &x, const Film &y) { return x.at < y.at; });
@@ -98,14 +101,12 @@ class FilmsTile : public tessera::Tile {
     paint_head(now);
     for (size_t i = 0; i < rows_.size(); ++i) {
       if (i == 0 && why) {
-        place(rows_[0], "", plugin_->text(why), "", false, 0, width_);
+        place(rows_[0], "", plugin_->text(why), nullptr, false, 0, width_);
       } else if (why || i >= shown.size()) {
-        place(rows_[i], "", "", "", false, 0, col_w_);
+        place(rows_[i], "", "", nullptr, false, 0, col_w_);
       } else {
         const Film &f = *shown[i];
-        std::string sub = f.channel;
-        if (!f.genre.empty()) sub += " · " + f.genre;
-        place(rows_[i], tessera::clock_text(f.at), f.title, sub, f.at <= now, when_w, col_w_);
+        place(rows_[i], tessera::clock_text(f.at), f.title, &f, f.at <= now, when_w, col_w_);
       }
     }
   }
@@ -116,14 +117,16 @@ class FilmsTile : public tessera::Tile {
     for (auto &r : rows_) {
       ui::set_color(r.when, r.on_air ? theme::ACCENT : theme::INK);
       ui::set_color(r.title, theme::INK);
+      ui::set_color(r.chan, theme::INK);
       ui::set_color(r.sub, theme::MUTED);
+      paint_dot(r);
     }
   }
 
  private:
   struct Row {
-    lv_obj_t *when{}, *title{}, *sub{};
-    int x = 0, y = 0;
+    lv_obj_t *when{}, *title{}, *dot{}, *chan{}, *sub{};
+    int x = 0, y = 0, group = 0;
     bool on_air = false;
   };
 
@@ -132,13 +135,30 @@ class FilmsTile : public tessera::Tile {
     r.y = y;
     r.when = ui::label(parent, Font::TITLE, theme::INK);
     r.title = ui::label(parent, Font::BODY_LARGE, theme::INK);
+    r.dot = ui::block(parent, theme::MARK_BLUE);
+    r.chan = ui::label(parent, Font::BODY, theme::INK);
     r.sub = ui::label(parent, Font::BODY, theme::MUTED);
   }
 
-  // The time in a column of `when_w`, the title and the channel beside it, in a row `row_w` wide. A message (no time)
-  // takes the title's place from the row's left edge. Nothing to show: all three empty.
-  void place(Row &r, const std::string &when, const std::string &title, const std::string &sub, bool on_air,
-             int when_w, int row_w) {
+  // The colour of a group's dot: the four colours of the Tessera mark, the same in both looks. No group: no dot.
+  static theme::Role group_role(int group) {
+    switch (group) {
+      case 1: return theme::MARK_BLUE;
+      case 2: return theme::MARK_AMBER;
+      case 3: return theme::MARK_GREEN;
+      default: return theme::MARK_PURPLE;
+    }
+  }
+  void paint_dot(Row &r) {
+    lv_obj_set_style_opa(r.dot, r.group > 0 ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
+    if (r.group > 0) lv_obj_set_style_bg_color(r.dot, ui::color(group_role(r.group)), 0);
+  }
+
+  // The time in a column of `when_w`, the title beside it and under the title the channel and the genre (`film`; null for
+  // a message, which has only the title), in a row `row_w` wide. A message takes the title's place from the row's left
+  // edge. Nothing to show: everything empty.
+  void place(Row &r, const std::string &when, const std::string &title, const Film *film, bool on_air, int when_w,
+             int row_w) {
     r.on_air = on_air;
     ui::set_text(r.when, when);
     ui::set_color(r.when, on_air ? theme::ACCENT : theme::INK);
@@ -149,9 +169,24 @@ class FilmsTile : public tessera::Tile {
     ui::set_text(r.title, title);
     lv_obj_set_size(r.title, w, ui::line_height(Font::BODY_LARGE));
     lv_obj_set_pos(r.title, r.x + tw, r.y + (line_ - ui::line_height(Font::BODY_LARGE)) / 2);
-    ui::set_text(r.sub, sub);
-    lv_obj_set_size(r.sub, w, ui::line_height(Font::BODY));
-    lv_obj_set_pos(r.sub, r.x + tw, r.y + line_);
+    // The second line: [dot] Channel . Genre
+    const int lh = ui::line_height(Font::BODY), y2 = r.y + line_;
+    const std::string channel = film ? film->channel : std::string();
+    const std::string genre = film && !film->genre.empty() ? "\u00B7 " + film->genre : std::string();
+    r.group = film ? film->group : 0;
+    const int d = std::max(ui::px(7), lh * 6 / 10);
+    const int dot_w = r.group > 0 ? d + ui::px(6) : 0;
+    paint_dot(r);
+    lv_obj_set_size(r.dot, std::max(1, d), std::max(1, d));
+    lv_obj_set_pos(r.dot, r.x + tw, y2 + (lh - d) / 2);
+    const int chan_w = std::min(w - dot_w, channel.empty() ? 0 : ui::text_width(channel, Font::BODY) + ui::px(2));
+    ui::set_text(r.chan, channel);
+    lv_obj_set_size(r.chan, std::max(1, chan_w), lh);
+    lv_obj_set_pos(r.chan, r.x + tw + dot_w, y2);
+    const int gx = dot_w + (chan_w > 0 ? chan_w + ui::px(6) : 0);
+    ui::set_text(r.sub, genre);
+    lv_obj_set_size(r.sub, std::max(1, w - gx), lh);
+    lv_obj_set_pos(r.sub, r.x + tw + gx, y2);
   }
 
   // The tile's name on the left; on the right the date, or that the guide is old.

@@ -1,4 +1,11 @@
 # Changelog
 
+## 0.2.0 - 2026-10-11
+- Under each title the channel's name is now in the regular colour, with a dot before it in the colour of its group
+  (Rai, Mediaset, Discovery, others), then the genre in grey. The sensor says the group in a new attribute, `groups`
+  (a number 1 to 4); without it the dot is simply not drawn.
+- The tile needs a little more room in the screen's layout memory (9000 instead of 6000 bytes).
+- A tile can now start from 1x1 (it shows the next film) and grow with the editor's handles up to 4x4.
+
 ## 0.1.0 - 2026-10-11
 - First version: a tile with the films on TV tonight, read from a sensor of Home Assistant.

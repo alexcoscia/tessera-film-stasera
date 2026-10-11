@@ -42,7 +42,8 @@ states:
         - No Sudden Move
         - Io prima di te
         - Stag. 2026 - Sul cammino di Francesco - La vita di Biagio Conte
-      channels: [Iris, Rai Movie, "20", La7, Top Crime, Rai 4, Cine34, Cine34, Rai 4, Top Crime, "20", Italia 2, Rai Movie, Iris, TV8, Rai 1]
+      channels: [Iris, Rai Movie, "20", La7, Top Crime, Rai 4, Cine34, NOVE, Rai 4, Top Crime, "20", Italia 2, Rai Movie, Iris, TV8, Rai 1]
+      groups: [2, 1, 2, 4, 2, 1, 2, 3, 1, 2, 2, 2, 1, 2, 4, 1]
       starts:
         - "{epoch-40m}"
         - "{epoch+10m}"
@@ -68,6 +69,7 @@ states:
       stale: true
       titles: [La giuria, The Gentleman]
       channels: [Rai Movie, Rai 4]
+      groups: [1, 1]
       starts: ["{epoch+30m}", "{epoch+80m}"]
       genres: [Thriller, ""]
   sensor.film_vuoto:

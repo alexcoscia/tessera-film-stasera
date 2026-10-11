@@ -6,10 +6,11 @@ a **un sensore di Home Assistant** e non scarica niente da internet.
 ## Come si usa
 
 1. In Home Assistant crea il sensore `sensor.film_stasera`: lo stato e' il numero di film, con quattro attributi
-   della stessa lunghezza, una voce per film: `titles`, `channels`, `starts` (secondi dal 1970) e `genres`.
-   L'attributo facoltativo `stale` (true o false) dice che la guida e' vecchia.
+   della stessa lunghezza, una voce per film: `titles`, `channels`, `starts` (secondi dal 1970) e `genres`. Facoltativi: `groups` (un numero da 1 a 4 per film, il colore del pallino
+   davanti al nome del canale: 1 blu, 2 ambra, 3 verde, 4 viola; 0 o assente: nessun pallino) e `stale` (true o
+   false: la guida e' vecchia).
 2. Aggiungi il plugin a uno schermo in Tessera. Lo schermo si ricompila una volta.
-3. In Layout metti il tile **Film stasera** dalla libreria (gruppo Plugin), da 2x2 a 4x4: mostra tutti i film che
+3. In Layout metti il tile **Film stasera** dalla libreria (gruppo Plugin), da 1x1 a 4x4: mostra tutti i film che
    ci stanno. Poi scegli il sensore nell'ispettore.
 
 ## Da sapere
