@@ -22,3 +22,5 @@ belongs to **one sensor of Home Assistant** and fetches nothing from the interne
   guide has no end times. The tile follows the screen's own clock, so a film leaves the list on its own.
 - When no film is left it says so. When the guide is old it says that beside the date.
 - It needs no key and no account.
+- Tried on a real Waveshare ESP32-S3-Touch-LCD-7B (7 inch, Tessera firmware 0.55.0). On the plugin bench
+  (`tools/preview.py`) it also draws without warnings on the 5-inch Waveshare and on the CYD (2.8 inch).

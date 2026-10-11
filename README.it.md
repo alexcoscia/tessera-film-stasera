@@ -21,3 +21,5 @@ a **un sensore di Home Assistant** e non scarica niente da internet.
   orari di fine. Il tile segue l'orologio dello schermo, quindi un film esce dalla lista da solo.
 - Quando non resta nessun film lo dice, e quando la guida e' vecchia lo scrive accanto alla data.
 - Non servono chiavi ne' account.
+- Provato su un vero Waveshare ESP32-S3-Touch-LCD-7B (7 pollici, firmware Tessera 0.55.0). Nel banco di prova dei
+  plugin (`tools/preview.py`) si disegna senza avvisi anche sul Waveshare da 5 pollici e sul CYD (2,8 pollici).
