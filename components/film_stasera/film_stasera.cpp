@@ -245,7 +245,7 @@ class FilmsTile : public tessera::Tile {
   // Ask Home Assistant to update the sensor: that runs the script. The button says "Updating..." until the sensor's
   // `updated` changes (or BUSY_SECONDS pass), or "Actions not allowed" when the screen may not call Home Assistant.
   void refresh() {
-    if (entity_.empty()) return;
+    if (entity_.empty() || !can_refresh(refresh_, now_, updated_)) return;
     refresh_.updated_at_tap = updated_;
     if (tessera::action("homeassistant.update_entity", entity_))
       refresh_.busy_until = now_ + BUSY_SECONDS;
@@ -266,7 +266,7 @@ class FilmsTile : public tessera::Tile {
     const int text_h = ui::line_height(Font::TITLE);
     const int w = std::min(width_, ui::text_width(text, Font::TITLE) + 2 * pad);
     // Under the message, on the second row; a tile of one row has only the button.
-    const int y = top_ + (rows_.size() >= 2 ? row_h_ + gap_ : 0);
+    const int y = top_ + button_row(per_column_) * (row_h_ + gap_);
     lv_obj_remove_flag(btn_text_, LV_OBJ_FLAG_HIDDEN);
     ui::set_text(btn_text_, text);
     lv_obj_set_style_pad_top(btn_text_, pad / 2, 0);
@@ -277,7 +277,7 @@ class FilmsTile : public tessera::Tile {
   // A message on the first row, the rest empty; the button takes the first row alone on a tile of one row.
   void show_message(const std::string &message, bool button) {
     for (size_t i = 0; i < rows_.size(); ++i) {
-      if (i == 0 && !(button && rows_.size() < 2))
+      if (i == 0 && !(button && button_row(per_column_) == 0))
         place(rows_[0], "", message, nullptr, false, 0, width_);
       else
         place(rows_[i], "", "", nullptr, false, 0, col_w_);

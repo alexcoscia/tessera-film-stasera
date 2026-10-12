@@ -9,6 +9,10 @@ tiles:
     name: Film stasera
     entity: sensor.film_stasera
   - tile: films
+    name: Guida di ieri larga
+    entity: sensor.film_ieri
+    sizes: [4x1]
+  - tile: films
     name: Programmi
     entity: sensor.film_stasera
     options: { start: programmes }

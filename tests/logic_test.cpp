@@ -85,6 +85,24 @@ int main() {
   CHECK(button_state(r, 1000, 50) == Button::DENIED);
   CHECK(button_state(r, 1005, 50) == Button::BUSY);  // denied is over, busy still holds
 
+  // where the Update button goes: under the message on the second row, or alone on the first when the tile has a single
+  // row. A wide tile one row high has two columns but one row per column: it is the row per column that counts.
+  CHECK(button_row(1) == 0);
+  CHECK(button_row(2) == 1);
+  CHECK(button_row(8) == 1);
+
+  // a tap while the button says "Updating..." does not ask Home Assistant again; after the busy time, or when the
+  // sensor changed, or when the last tap was denied, it may
+  Refresh q;
+  q.updated_at_tap = 50;
+  q.busy_until = 1090;
+  CHECK(!can_refresh(q, 1000, 50));
+  CHECK(can_refresh(q, 1090, 50));
+  CHECK(can_refresh(q, 1000, 51));
+  q.denied_until = 1005;
+  CHECK(can_refresh(q, 1000, 50));
+  CHECK(can_refresh(Refresh{}, 1000, 50));
+
   if (failures == 0) std::printf("logic_test: ok\n");
   return failures == 0 ? 0 : 1;
 }

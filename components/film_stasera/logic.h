@@ -51,4 +51,14 @@ inline Button button_state(const Refresh &r, uint32_t now, uint32_t updated_now)
   return Button::IDLE;
 }
 
+// The row of the Update button: the second, under the message, or the first when the tile has a single row. What counts
+// is the rows of one column (a wide tile one row high has two columns and one row per column).
+inline int button_row(int rows_per_column) { return rows_per_column >= 2 ? 1 : 0; }
+
+// A tap asks Home Assistant to update the sensor, unless the button is already busy with an earlier tap: the script can
+// take minutes on a small computer and must not be queued three times.
+inline bool can_refresh(const Refresh &r, uint32_t now, uint32_t updated_now) {
+  return button_state(r, now, updated_now) != Button::BUSY;
+}
+
 }  // namespace esphome::film_stasera
