@@ -37,7 +37,7 @@ static constexpr uint32_t DENIED_SECONDS = 5;    // "Actions not allowed" shows 
 // The tile has two modes, and a tap on it changes the mode. Films: a header (its name and the date), then one row per
 // film as many as fit. A row has the start time on the left; beside it the title, and under the title the channel's
 // name with a dot in the colour of its group (Rai, Mediaset...) and the genre. A film that has already started shows
-// its time in the accent. Programmes: a header (its name and "Programmes"), then one block per channel in the order of
+// its time in the accent. Programmes: a header ("Programmes tonight" and the date), then one block per channel in the order of
 // the remote: the channel on the left, and on its right two lines, the prime-time programme with its time and the late
 // one with its time. When the channels do not fit the page turns by itself. A tile at least WIDE_MM wide is split into
 // two columns that fill one after the other. The sensor changes a few times a day, the clock every second: only a text
@@ -401,21 +401,21 @@ class FilmsTile : public tessera::Tile {
     lv_obj_set_pos(r.sub, x + when_w, y2);
   }
 
-  // The tile's name on the left; on the right the date (films), or "Programmes" and the page (programmes), or that the
-  // guide is old.
+  // The tile's name on the left ("Programmes tonight" in the Programmes mode); on the right the date and, with several
+  // pages, the page, or that the guide is old.
   void paint_head(uint32_t now) {
     if (!head_) return;
     std::string note;
     if (stale_) {
       note = plugin_->text("old");
-    } else if (mode_ == Mode::PROGRAMMES) {
-      note = plugin_->text("programmes");
-      if (pages_ > 1) note += " " + std::to_string(page_ + 1) + "/" + std::to_string(pages_);
     } else if (now) {
       note = tessera::date_text(now);
+      if (mode_ == Mode::PROGRAMMES && pages_ > 1) note += "  " + std::to_string(page_ + 1) + "/" + std::to_string(pages_);
     }
     const int note_w = note.empty() ? 0 : ui::text_width(note, Font::BODY) + ui::px(2);
-    const std::string title = name_.empty() ? plugin_->text("header") : name_;
+    // The Programmes mode has a title of its own; the Films mode keeps the tile's name.
+    const std::string title =
+        mode_ == Mode::PROGRAMMES ? plugin_->text("header_programmes") : name_.empty() ? plugin_->text("header") : name_;
     ui::set_text(head_, title);
     lv_obj_set_size(head_, std::max(1, width_ - note_w - (note_w ? ui::px(8) : 0)), ui::line_height(Font::TITLE));
     lv_obj_set_pos(head_, 0, 0);
