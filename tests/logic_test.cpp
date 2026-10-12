@@ -103,6 +103,15 @@ int main() {
   CHECK(can_refresh(q, 1000, 50));
   CHECK(can_refresh(Refresh{}, 1000, 50));
 
+  // the mode survives the tile being made again (a screen that wakes, a page that comes back); a new start option wins
+  ModeMemory m;
+  CHECK(initial_mode(m, Mode::FILMS) == Mode::FILMS);        // first time: the start option
+  remember_mode(m, Mode::FILMS, Mode::PROGRAMMES);           // the person tapped
+  CHECK(initial_mode(m, Mode::FILMS) == Mode::PROGRAMMES);   // made again with the same start: the person's choice
+  CHECK(initial_mode(m, Mode::PROGRAMMES) == Mode::PROGRAMMES);  // start changed in the editor: the new start
+  remember_mode(m, Mode::PROGRAMMES, Mode::FILMS);
+  CHECK(initial_mode(m, Mode::PROGRAMMES) == Mode::FILMS);
+
   if (failures == 0) std::printf("logic_test: ok\n");
   return failures == 0 ? 0 : 1;
 }

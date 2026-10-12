@@ -9,6 +9,19 @@ enum class Mode { FILMS, PROGRAMMES };
 enum class View { CHOOSE_SENSOR, WAITING, NO_DATA, OLD_GUIDE, EMPTY, LIST };
 enum class Button { IDLE, BUSY, DENIED };
 
+// The mode a person chose with a tap outlives the tile object (Tessera makes it again when the screen wakes or the page
+// comes back). It counts only for the same start option: choosing another start in the editor wins.
+struct ModeMemory {
+  bool set = false;
+  Mode start = Mode::FILMS, mode = Mode::FILMS;
+};
+inline Mode initial_mode(const ModeMemory &m, Mode start) { return m.set && m.start == start ? m.mode : start; }
+inline void remember_mode(ModeMemory &m, Mode start, Mode mode) {
+  m.set = true;
+  m.start = start;
+  m.mode = mode;
+}
+
 // How many pages `items` make with `per_page` on each (0 for nothing), and the page to show at `epoch` when the pages
 // turn by themselves every `seconds_per_page`.
 inline int page_count(int items, int per_page) {

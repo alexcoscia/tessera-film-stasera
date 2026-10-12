@@ -1,5 +1,6 @@
 #include "film_stasera.h"
 #include "logic.h"
+#include "esphome/core/log.h"
 #include <algorithm>
 #include <climits>
 #include <string>
@@ -9,6 +10,9 @@ namespace esphome::film_stasera {
 
 using tessera::Font;
 namespace ui = tessera::ui;
+
+static const char *const TAG = "film_stasera";
+static ModeMemory g_mode;   // the mode of the last tap, kept while the tile is made again
 
 // One film as Home Assistant's sensor has it: four lists of the same length, one entry per film (README.md).
 struct Film {
@@ -53,7 +57,14 @@ class FilmsTile : public tessera::Tile {
     height_ = c.height;
     name_ = c.name;
     entity_ = c.entity;
-    mode_ = std::string(c.options["start"] | "films") == "programmes" ? Mode::PROGRAMMES : Mode::FILMS;
+    const Mode start = std::string(c.options["start"] | "films") == "programmes" ? Mode::PROGRAMMES : Mode::FILMS;
+    mode_ = initial_mode(g_mode, start);
+    start_ = start;
+    remember_mode(g_mode, start_, mode_);
+    ESP_LOGD(TAG, "tile made, mode %s", mode_ == Mode::PROGRAMMES ? "programmes" : "films");
+    // Behind everything: the Programmes mode has its own background (pale blue), the Films mode keeps the card's.
+    back_ = c.parent;
+    lv_obj_set_style_radius(back_, ui::px(ui::large() ? 12 : 8), 0);
     gap_ = ui::px(ui::large() ? 8 : 5);
     line_ = std::max(ui::line_height(Font::TITLE), ui::line_height(Font::BODY_LARGE));
     row_h_ = line_ + ui::line_height(Font::BODY);
@@ -163,6 +174,8 @@ class FilmsTile : public tessera::Tile {
       case View::LIST: break;
     }
     const bool button = view_ == View::NO_DATA || view_ == View::OLD_GUIDE;
+    lv_obj_set_style_bg_color(back_, ui::color(theme::ACCENT_TINT), 0);
+    lv_obj_set_style_bg_opa(back_, programmes && (view_ == View::LIST || view_ == View::EMPTY) ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
     paint_head(now);
     paint_button(button);
     if (message)
@@ -175,6 +188,7 @@ class FilmsTile : public tessera::Tile {
 
   // A tap: Update where there is no data, otherwise the other mode.
   void on_tap() override {
+    ESP_LOGD(TAG, "tap, view %d", static_cast<int>(view_));
     switch (view_) {
       case View::NO_DATA:
       case View::OLD_GUIDE:
@@ -183,6 +197,8 @@ class FilmsTile : public tessera::Tile {
       case View::EMPTY:
       case View::LIST:
         mode_ = mode_ == Mode::FILMS ? Mode::PROGRAMMES : Mode::FILMS;
+        remember_mode(g_mode, start_, mode_);
+        ESP_LOGD(TAG, "tap: mode %s", mode_ == Mode::PROGRAMMES ? "programmes" : "films");
         on_tick(now_);
         break;
       default:
@@ -193,6 +209,7 @@ class FilmsTile : public tessera::Tile {
   void on_theme() override {
     if (head_) ui::set_color(head_, theme::INK);
     if (head_note_) ui::set_color(head_note_, theme::MUTED);
+    lv_obj_set_style_bg_color(back_, ui::color(theme::ACCENT_TINT), 0);
     lv_obj_set_style_bg_color(btn_text_, ui::color(theme::BUTTON), 0);
     ui::set_color(btn_text_, theme::INK);
     for (auto &r : rows_) {
@@ -431,6 +448,8 @@ class FilmsTile : public tessera::Tile {
   bool has_head_ = false, has_entity_ = false, no_value_ = false, stale_ = false;
   std::string name_, wait_, entity_;
   std::vector<Row> rows_;
+  lv_obj_t *back_{};
+  Mode start_ = Mode::FILMS;
   lv_obj_t *head_{}, *head_note_{}, *btn_text_{};
   std::vector<Film> films_;
   std::vector<Show> shows_;

@@ -3,7 +3,9 @@
 ## 0.3.0 - 2026-10-12
 - A second mode, Programmes: for each channel, in the order of the remote, the prime-time programme and the late one,
   each with its time. A tap on the tile changes between Films and Programmes; the tile option "Start mode" says which
-  one it starts in. When the channels do not fit, the page turns by itself every 8 seconds.
+  one it starts in; the mode a person chose stays when the screen wakes. The Programmes mode has its own title
+  ("Programmes tonight") and a pale blue background. When the channels do not fit, the page turns by itself every 8
+  seconds.
 - When there is no data (the sensor has no value, or its guide is not today's) the tile says so and shows an Update
   button: a tap asks Home Assistant to update the sensor, which runs the script that fetches the guide. The screen must
   be allowed to perform Home Assistant actions.
