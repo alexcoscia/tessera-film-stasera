@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.1 - 2026-10-12
+- Adds `store.png`, the picture of the plugin on the Plugins page, made with `tools/store_image.py`. No change to the tile.
+
 ## 0.2.0 - 2026-10-11
 - Under each title the channel's name is now in the regular colour, with a dot before it in the colour of its group
   (Rai, Mediaset, Discovery, others), then the genre in grey. The sensor says the group in a new attribute, `groups`
