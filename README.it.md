@@ -23,3 +23,18 @@ a **un sensore di Home Assistant** e non scarica niente da internet.
 - Non servono chiavi ne' account.
 - Provato su un vero Waveshare ESP32-S3-Touch-LCD-7B (7 pollici, firmware Tessera 0.55.0). Nel banco di prova dei
   plugin (`tools/preview.py`) si disegna senza avvisi anche sul Waveshare da 5 pollici e sul CYD (2,8 pollici).
+
+## Modalità e pulsante Aggiorna
+
+Il tile ha due modalità. **Film** (quella di partenza) elenca i film di stasera. **Programmi** elenca, per ogni canale in
+ordine di numero del telecomando, il programma di prima serata e quello di seconda serata, ognuno con il suo orario;
+quando i canali non entrano, la pagina cambia da sola ogni 8 secondi. Un tocco sul tile cambia modalità; l'opzione
+"Modalità iniziale" dice da quale parte.
+
+Quando mancano i dati (il sensore non ha un valore, o la sua guida non è di oggi) il tile lo dice e mostra un pulsante
+**Aggiorna**. Un tocco chiede a Home Assistant di aggiornare il sensore, cioè di lanciare lo script che scarica la guida.
+Lo schermo deve poter eseguire azioni di Home Assistant.
+
+Per i Programmi il sensore ha bisogno degli attributi `prog_channels`, `prog_groups`, `prog1_titles`, `prog1_starts`,
+`prog2_titles` e `prog2_starts`: arrivano con la versione 0.3 dello script `film-stasera-ha`. L'app manda a ogni tile al
+massimo 2600 byte: in una serata con molti film le liste vengono tagliate alla stessa lunghezza.

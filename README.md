@@ -24,3 +24,18 @@ belongs to **one sensor of Home Assistant** and fetches nothing from the interne
 - It needs no key and no account.
 - Tried on a real Waveshare ESP32-S3-Touch-LCD-7B (7 inch, Tessera firmware 0.55.0). On the plugin bench
   (`tools/preview.py`) it also draws without warnings on the 5-inch Waveshare and on the CYD (2.8 inch).
+
+## Modes and the Update button
+
+The tile has two modes. **Films** (the default) lists tonight's films. **Programmes** lists, for each channel in the
+order of the remote, the prime-time programme and the late one, each with its time; when the channels do not fit, the
+page turns by itself every 8 seconds. A tap on the tile changes the mode; the tile option "Start mode" says which one it
+starts in.
+
+When there is no data (the sensor has no value, or its guide is not today's) the tile says so and shows an **Update**
+button. A tap asks Home Assistant to update the sensor, which runs the script that fetches the guide. The screen must be
+allowed to perform Home Assistant actions.
+
+The sensor needs the attributes `prog_channels`, `prog_groups`, `prog1_titles`, `prog1_starts`, `prog2_titles` and
+`prog2_starts` for the Programmes mode: they come with the 0.3 version of the script `film-stasera-ha`. The app sends a
+tile at most 2600 bytes: on an evening with many films the lists are cut to the same length.
