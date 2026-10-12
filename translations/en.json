@@ -1,16 +1,29 @@
 {
-  "_meta": { "name": "English" },
+  "_meta": {
+    "name": "English"
+  },
   "screen": {
     "header": "Films tonight",
     "none": "No more films tonight",
     "waiting": "Waiting for the guide",
     "choose_sensor": "Choose the film sensor",
-    "old": "Old guide"
+    "old": "Old guide",
+    "refresh": "Update",
+    "refreshing": "Updating...",
+    "not_allowed": "Actions not allowed",
+    "no_data": "Waiting for the guide",
+    "old_day": "Yesterday's guide",
+    "programmes": "Programmes",
+    "none_programmes": "No programmes tonight"
   },
   "app": {
     "name": "Films tonight",
     "summary": "The films on Italian TV tonight, from a sensor in Home Assistant.",
     "tile_name": "Films tonight",
-    "tile_example": "21:00 Cine34 - a film"
+    "tile_example": "21:00 Cine34 - a film",
+    "start": "Start mode",
+    "start_hint": "A tap on the tile changes the mode.",
+    "start_films": "Films",
+    "start_programmes": "Programmes"
   }
 }

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 - 2026-10-12
+- A second mode, Programmes: for each channel, in the order of the remote, the prime-time programme and the late one,
+  each with its time. A tap on the tile changes between Films and Programmes; the tile option "Start mode" says which
+  one it starts in. When the channels do not fit, the page turns by itself every 8 seconds.
+- When there is no data (the sensor has no value, or its guide is not today's) the tile says so and shows an Update
+  button: a tap asks Home Assistant to update the sensor, which runs the script that fetches the guide. The screen must
+  be allowed to perform Home Assistant actions.
+- Needs the 0.3 version of the script `film-stasera-ha` (the sensor's new attributes `prog_*`); without them the Films
+  mode works as before and the Programmes mode says there are no programmes.
+- The tile asks for a little more room in the screen's layout memory (11000 bytes).
+
+
 ## 0.2.1 - 2026-10-12
 - Adds `store.png`, the picture of the plugin on the Plugins page, made with `tools/store_image.py`. No change to the tile.
 

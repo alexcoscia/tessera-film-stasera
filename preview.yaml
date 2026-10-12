@@ -1,12 +1,30 @@
 # What tools/preview.py shows (docs/PREVIEW.md of the plugins repository): the sensor of tonight's films, as Home
-# Assistant has it, with a film that has started and the ones after it; a guide that is old; no film left; and the
-# tile before a sensor is chosen. Moments are made from the time of the render ("{epoch+25m}" is in 25 minutes).
+# Assistant has it, with a film that has started and the ones after it; the same sensor in the Programmes mode (and a
+# small tile, where the channels turn pages); a guide that is old; no film left; yesterday's guide and a sensor
+# without a value (both with the Update button); and the tile before a sensor is chosen. Moments are made from the time of the render ("{epoch+25m}" is in 25 minutes).
 time_zone: Europe/Rome
 
 tiles:
   - tile: films
     name: Film stasera
     entity: sensor.film_stasera
+  - tile: films
+    name: Programmi
+    entity: sensor.film_stasera
+    options: { start: programmes }
+  - tile: films
+    name: Programmi a pagine
+    entity: sensor.film_stasera
+    options: { start: programmes }
+    sizes: [2x2]
+  - tile: films
+    name: Guida di ieri
+    entity: sensor.film_ieri
+    sizes: [2x2, 4x4]
+  - tile: films
+    name: Senza valore
+    entity: sensor.film_senza_valore
+    sizes: [1x1, 2x2]
   - tile: films
     name: Guida vecchia
     entity: sensor.film_vecchia
@@ -25,6 +43,8 @@ states:
     attributes:
       friendly_name: Film stasera
       stale: false
+      date: "{now}"
+      updated: "{epoch-5m}"
       titles:
         - Point Break - Punto di rottura
         - La giuria
@@ -62,11 +82,51 @@ states:
         - "{epoch+4h}"
         - "{epoch+270m}"
       genres: [Poliziesco, Thriller, Azione, Commedia, Poliziesco, "", Commedia, Commedia, "", Thriller, Drammatico, Horror, "", Poliziesco, Drammatico, Biografico]
+      prog_channels: ["Rai 1", "Rai 2", "Rai 3", "Rete 4", "Canale 5", "Italia 1", "La7", "TV8", "20", "Rai 4", "Iris", "Rai Movie", "Cine34", "Focus", "Top Crime", "Italia 2"]
+      prog_groups: [1, 1, 1, 2, 2, 2, 4, 4, 2, 1, 2, 1, 2, 2, 2, 2]
+      prog1_titles:
+        - "I casi di Teresa Battaglia"
+        - "Formidabile! 2026"
+        - "Lo stato delle cose"
+        - "Quarta Repubblica"
+        - "Grande Fratello Vip"
+        - "Retribution"
+        - "La torre di Babele"
+        - "Assassinio sull'Orient Express"
+        - "The Suicide Squad"
+        - "Striking Rescue"
+        - "Gangs of New York"
+        - "Per qualche dollaro in piu'"
+        - "Odio l'estate"
+        - "Treasures with Bettany Hughes"
+        - "C.S.I. Miami"
+        - "One Piece"
+      prog1_starts: ["{epoch+60m}", "{epoch+70m}", "{epoch+80m}", "{epoch+90m}", "{epoch+100m}", "{epoch+110m}", "{epoch+120m}", "{epoch+130m}", "{epoch+140m}", "{epoch+150m}", "{epoch+160m}", "{epoch+170m}", "{epoch+180m}", "{epoch+190m}", "{epoch+200m}", "{epoch+210m}"]
+      prog2_titles:
+        - "Cose Nostre"
+        - "Il Processo del Lunedi'"
+        - "Tg3 Linea Notte"
+        - "Achille Lauro: la crociera del terrore"
+        - "Tg5"
+        - "Cold Case - Delitti irrisolti"
+        - "Ep. 2"
+        - "The Equalizer 2 - Senza perdono"
+        - "The Italian Job"
+        - "Elyas"
+        - "Anna dei mille giorni"
+        - "Il grande silenzio"
+        - "Ferie d'Agosto"
+        - "Predatori e prede"
+        - "C.S.I. Miami"
+        - ""
+      prog2_starts: ["{epoch+240m}", "{epoch+252m}", "{epoch+264m}", "{epoch+276m}", "{epoch+288m}", "{epoch+300m}", "{epoch+312m}", "{epoch+324m}", "{epoch+336m}", "{epoch+348m}", "{epoch+360m}", "{epoch+372m}", "{epoch+384m}", "{epoch+396m}", "{epoch+408m}", 0]
   sensor.film_vecchia:
     state: "2"
     attributes:
       friendly_name: Film stasera
       stale: true
+      date: "{now}"
+      updated: "{epoch-3h}"
       titles: [La giuria, The Gentleman]
       channels: [Rai Movie, Rai 4]
       groups: [1, 1]
@@ -77,7 +137,25 @@ states:
     attributes:
       friendly_name: Film stasera
       stale: false
+      date: "{now}"
+      updated: "{epoch-5m}"
       titles: []
       channels: []
       starts: []
       genres: []
+  sensor.film_ieri:
+    state: "12"
+    attributes:
+      friendly_name: Film stasera
+      stale: false
+      date: "{now-1d}"
+      updated: "{epoch-1d}"
+      titles: [La giuria, The Gentleman]
+      channels: [Rai Movie, Rai 4]
+      groups: [1, 1]
+      starts: ["{epoch-20h}", "{epoch-19h}"]
+      genres: [Thriller, ""]
+  sensor.film_senza_valore:
+    state: unavailable
+    attributes:
+      friendly_name: Film stasera

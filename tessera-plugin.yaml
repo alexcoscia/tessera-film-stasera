@@ -2,7 +2,7 @@
 # every name, label and hint below is a key into translations/<language>.json, part "app".
 # Every field is explained in docs/MANIFEST.md of the plugins repository.
 id: film_stasera
-version: 0.2.1
+version: 0.3.0
 api: "0.8"
 icon: movie-open
 maintainer: alexcoscia
@@ -13,7 +13,11 @@ topics: [media]
 requires:
   esphome: 2026.6.2
 boards: any
-flash_kb: 6
+flash_kb: 8
+
+# The tile asks Home Assistant to update its own sensor when there is no data (the Update button).
+permissions:
+  home_assistant_actions: [homeassistant.update_entity]
 
 tiles:
   # A tile that belongs to one sensor of Home Assistant: sensor.film_stasera, with the films of tonight as four lists
@@ -25,12 +29,26 @@ tiles:
     # From 1x1: the editor resizes one axis at a time, so a minimum above 1x1 leaves a new tile no first step (it would
     # be stuck at 1x1). One cell shows the next film; a bigger tile shows as many as fit.
     sizes: { min: 1x1, max: 4x4 }
-    # Worst case, a wide tile: 2 columns of 8 rows (4 labels and a dot each, ~100 bytes a label) and up to 20 films kept.
-    memory: 9000
+    # Worst case, a wide tile: 2 columns of 8 rows (5 labels and a dot each, ~100 bytes a label), up to 20 films and 20
+    # channels kept, and the Update button.
+    memory: 11000
     domains: [sensor]
-    attributes: [titles, channels, starts, genres, groups, stale]
+    # The films, then the Programmes mode (one entry per channel: prime-time and late programme with their starts), then
+    # `date` (the day of the guide) and `updated` (when the script last ran): the tile compares the day with today's.
+    attributes: [titles, channels, starts, genres, groups, stale, date, updated, prog_channels, prog_groups, prog1_titles,
+                 prog1_starts, prog2_titles, prog2_starts]
     # Offer only a sensor that has these two lists, not every sensor in the house.
     has_attributes: [titles, starts]
     example: tile_example
     # How the editor draws it: the sensor's name and its state (the number of films).
     preview: { title: "{name}", value: "{state}" }
+    # Which mode the tile starts in; a tap on the tile changes it.
+    options:
+      - id: start
+        kind: choice
+        choices:
+          - { value: films, label: start_films }
+          - { value: programmes, label: start_programmes }
+        default: films
+        label: start
+        hint: start_hint
