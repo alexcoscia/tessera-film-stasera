@@ -12,6 +12,9 @@
 - Needs the 0.3 version of the script `film-stasera-ha` (the sensor's new attributes `prog_*`); without them the Films
   mode works as before and the Programmes mode says there are no programmes.
 - The tile asks for a little more room in the screen's layout memory (11000 bytes).
+- A long press counts as a tap. On some screens the finger's release reaches the app late, so a quick tap was read as a
+  long press, which a plugin never hears, and the tile sometimes ignored it. The tile also repaints only when
+  something changed (page, minute, data), not every second.
 
 
 ## 0.2.1 - 2026-10-12

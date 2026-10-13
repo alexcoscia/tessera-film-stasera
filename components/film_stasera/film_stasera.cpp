@@ -2,6 +2,8 @@
 #include "logic.h"
 #include "esphome/core/log.h"
 #include <algorithm>
+#include <set>
+#include <tuple>
 #include <climits>
 #include <string>
 #include <vector>
@@ -64,6 +66,10 @@ class FilmsTile : public tessera::Tile {
     ESP_LOGD(TAG, "tile made, mode %s", mode_ == Mode::PROGRAMMES ? "programmes" : "films");
     // Behind everything: the Programmes mode has its own background (pale blue), the Films mode keeps the card's.
     back_ = c.parent;
+    // On the 7B the finger's release reaches LVGL late on this page (0.5 s and more), so a quick tap counted as a long
+    // press (400 ms), which Tessera does not pass to a plugin. A long press is the same as a tap here.
+    live().insert(this);
+    if (lv_obj_t *tile = lv_obj_get_parent(back_)) lv_obj_add_event_cb(tile, on_long_press, LV_EVENT_LONG_PRESSED, this);
     lv_obj_set_style_radius(back_, ui::px(ui::large() ? 12 : 8), 0);
     gap_ = ui::px(ui::large() ? 8 : 5);
     line_ = std::max(ui::line_height(Font::TITLE), ui::line_height(Font::BODY_LARGE));
@@ -141,6 +147,7 @@ class FilmsTile : public tessera::Tile {
     date_epoch_ = a["date"] | 0u;
     updated_ = a["updated"] | 0u;
     wait_ = std::string(data["wait"] | "");
+    ++data_version_;
   }
 
   void on_tick(uint32_t now) override {
@@ -174,6 +181,13 @@ class FilmsTile : public tessera::Tile {
       case View::LIST: break;
     }
     const bool button = view_ == View::NO_DATA || view_ == View::OLD_GUIDE;
+    // Nothing that is painted has changed since the last tick: leave LVGL alone. Repainting every second kept it busy
+    // enough to lose short taps. What is painted depends on mode, view, page, the minute (on air, date) and the button.
+    const int button_now = button ? static_cast<int>(button_state(refresh_, now_, updated_)) + 1 : 0;
+    const auto signature = std::make_tuple(true, data_version_, now / 60, page_, static_cast<int>(view_),
+                                           static_cast<int>(mode_), button_now);
+    if (signature == painted_) return;
+    painted_ = signature;
     lv_obj_set_style_bg_color(back_, ui::color(theme::ACCENT_TINT), 0);
     lv_obj_set_style_bg_opa(back_, programmes && (view_ == View::LIST || view_ == View::EMPTY) ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
     paint_head(now);
@@ -184,6 +198,18 @@ class FilmsTile : public tessera::Tile {
       show_shows();
     else
       show_films(films, now);
+  }
+
+  ~FilmsTile() override { live().erase(this); }
+
+  // The tiles that exist: the callback gets its tile from LVGL, which may outlive it.
+  static std::set<FilmsTile *> &live() {
+    static std::set<FilmsTile *> tiles;
+    return tiles;
+  }
+  static void on_long_press(lv_event_t *e) {
+    auto *self = static_cast<FilmsTile *>(lv_event_get_user_data(e));
+    if (self && live().count(self)) self->on_tap();
   }
 
   // A tap: Update where there is no data, otherwise the other mode.
@@ -458,6 +484,8 @@ class FilmsTile : public tessera::Tile {
   Refresh refresh_;
   uint32_t now_ = 0, date_epoch_ = 0, updated_ = 0;
   int page_ = 0, pages_ = 0;
+  uint32_t data_version_ = 0;
+  std::tuple<bool, uint32_t, uint32_t, int, int, int, int> painted_{};  // what the last paint was made from
 };
 
 void FilmStasera::setup() {
